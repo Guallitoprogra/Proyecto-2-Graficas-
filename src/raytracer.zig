@@ -15,14 +15,21 @@ pub fn trace(ray: Ray, cubes: []const Cube) fb.Color {
             nearest = hit.distance;
             // El sombreado inicial permite distinguir las caras; todavia no hay sombras.
             const intensity = 0.25 + 0.75 * @max(0, hit.normal.dot(light));
+            const material = cube.material.properties();
+            const uv = cube.textureCoordinates(ray.at(hit.distance), hit.normal);
+            const texture = material.texture.sample(uv[0], uv[1]);
             color = .{
-                .r = @intFromFloat(@as(f32, @floatFromInt(cube.color.r)) * intensity),
-                .g = @intFromFloat(@as(f32, @floatFromInt(cube.color.g)) * intensity),
-                .b = @intFromFloat(@as(f32, @floatFromInt(cube.color.b)) * intensity),
+                .r = channel(texture.r, cube.color.r, material.albedo.x * intensity),
+                .g = channel(texture.g, cube.color.g, material.albedo.y * intensity),
+                .b = channel(texture.b, cube.color.b, material.albedo.z * intensity),
             };
         }
     }
     return color;
+}
+
+fn channel(texture: u8, tint: u8, intensity: f32) u8 {
+    return @intFromFloat(@min(255, @as(f32, @floatFromInt(texture)) * @as(f32, @floatFromInt(tint)) / 255 * intensity));
 }
 
 pub fn render(buffer: *fb.Framebuffer, camera: Camera, cubes: []const Cube) void {

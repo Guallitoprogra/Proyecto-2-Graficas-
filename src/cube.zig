@@ -2,6 +2,7 @@ const std = @import("std");
 const Vec3 = @import("vector.zig").Vec3;
 const Ray = @import("ray.zig").Ray;
 const Color = @import("framebuffer.zig").Color;
+const Material = @import("material.zig").Material;
 
 pub const Hit = struct {
     distance: f32,
@@ -11,7 +12,15 @@ pub const Hit = struct {
 pub const Cube = struct {
     min: Vec3,
     max: Vec3,
-    color: Color,
+    material: Material = .wood,
+    color: Color = .{ .r = 255, .g = 255, .b = 255 },
+
+    pub fn textureCoordinates(self: Cube, point: Vec3, normal: Vec3) [2]f32 {
+        const local = point.sub(self.min);
+        if (normal.x != 0) return .{ local.z, local.y };
+        if (normal.y != 0) return .{ local.x, local.z };
+        return .{ local.x, local.y };
+    }
 
     pub fn intersect(self: Cube, ray: Ray) ?Hit {
         const origins = [3]f32{ ray.origin.x, ray.origin.y, ray.origin.z };
