@@ -6,6 +6,7 @@ const cube_file = @import("cube.zig");
 const Cube = cube_file.Cube;
 const Camera = @import("camera.zig").Camera;
 const optics = @import("optics.zig");
+const skybox = @import("skybox.zig");
 
 const light_direction = (Vec3{ .x = -0.5, .y = 1, .z = 0.7 }).normalized();
 const surface_offset = 0.002;
@@ -74,7 +75,7 @@ fn secondaryRay(point: Vec3, normal: Vec3, direction: Vec3) Ray {
 }
 
 fn traceBounce(ray: Ray, cubes: []const Cube, depth: u8) Vec3 {
-    const nearest = nearestHit(ray, cubes) orelse return .{ .x = 100, .y = 155, .z = 210 };
+    const nearest = nearestHit(ray, cubes) orelse return skybox.sample(ray.direction);
     const local = surfaceColor(ray, cubes, nearest);
     if (depth >= 6) return local;
     const cube = cubes[nearest.cube_index];
