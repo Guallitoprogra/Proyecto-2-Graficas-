@@ -60,6 +60,10 @@ pub const Window = struct {
         return true;
     }
 
+    pub fn setTitle(self: *Window, title: [:0]const u8) void {
+        _ = SetWindowTextA(self.hwnd, title);
+    }
+
     pub fn draw(self: *Window, framebuffer: *const fb.Framebuffer) void {
         // StretchDIBits copia nuestro framebuffer pequeno y lo escala al tamano de la ventana.
         var rect: RECT = undefined;
@@ -229,6 +233,7 @@ extern "kernel32" fn GetModuleHandleA(lpModuleName: ?LPCSTR) callconv(.winapi) H
 extern "kernel32" fn Sleep(dwMilliseconds: DWORD) callconv(.winapi) void;
 extern "kernel32" fn GetTickCount64() callconv(.winapi) u64;
 extern "user32" fn GetAsyncKeyState(vKey: i32) callconv(.winapi) i16;
+extern "user32" fn SetWindowTextA(hwnd: HWND, title: LPCSTR) callconv(.winapi) BOOL;
 extern "user32" fn RegisterClassA(lpWndClass: *const WNDCLASSA) callconv(.winapi) ATOM;
 extern "user32" fn CreateWindowExA(dwExStyle: DWORD, lpClassName: LPCSTR, lpWindowName: LPCSTR, dwStyle: DWORD, x: i32, y: i32, nWidth: i32, nHeight: i32, hWndParent: HWND, hMenu: HMENU, hInstance: HINSTANCE, lpParam: ?*anyopaque) callconv(.winapi) HWND;
 extern "user32" fn ShowWindow(hWnd: HWND, nCmdShow: i32) callconv(.winapi) BOOL;
