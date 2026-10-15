@@ -31,4 +31,14 @@ pub fn build(b: *std.Build) void {
     });
     const run_benchmark = b.addRunArtifact(benchmark);
     b.step("benchmark", "Compara un hilo con varios y verifica la imagen").dependOn(&run_benchmark.step);
+    const demo = b.addExecutable(.{
+        .name = "demo",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/demo.zig"),
+            .target = target,
+            .optimize = optimize,
+            .link_libc = true,
+        }),
+    });
+    b.step("demo", "Exporta los cuadros del recorrido del diorama").dependOn(&b.addRunArtifact(demo).step);
 }
