@@ -5,7 +5,6 @@ pub const Window = struct {
     bitmap_info: BITMAPINFO,
 
     pub fn open(title: [:0]const u8) !Window {
-        // Esta parte crea una ventana normal de Windows usando la API Win32.
         const class_name = "ProyectoGraficasWindow";
         const instance = GetModuleHandleA(null);
 
@@ -22,7 +21,7 @@ pub const Window = struct {
             .lpszClassName = class_name,
         };
 
-        _ = RegisterClassA(&window_class);
+        if (RegisterClassA(&window_class) == 0) return error.WindowClassFailed;
 
         const hwnd = CreateWindowExA(
             0,
@@ -49,7 +48,6 @@ pub const Window = struct {
     }
 
     pub fn isOpen(self: *Window) bool {
-        // Aqui se leen los mensajes de Windows para saber si la ventana sigue abierta.
         _ = self;
         var message: MSG = undefined;
         while (PeekMessageA(&message, null, 0, 0, PM_REMOVE) != 0) {
@@ -65,21 +63,26 @@ pub const Window = struct {
     }
 
     pub fn draw(self: *Window, framebuffer: *const fb.Framebuffer) void {
-        // StretchDIBits copia nuestro framebuffer pequeno y lo escala al tamano de la ventana.
         var rect: RECT = undefined;
         if (GetClientRect(self.hwnd, &rect) == 0) return;
 
         const window_width = rect.right - rect.left;
         const window_height = rect.bottom - rect.top;
+        if (window_width <= 0 or window_height <= 0) return;
+        // Conservamos la proporcion 4:3 para que los cubos no se estiren al redimensionar.
+        const draw_width = @min(window_width, @divTrunc(window_height * fb.screen_width, fb.screen_height));
+        const draw_height = @divTrunc(draw_width * fb.screen_height, fb.screen_width);
+        if (draw_width <= 0 or draw_height <= 0) return;
         const hdc = GetDC(self.hwnd) orelse return;
         defer _ = ReleaseDC(self.hwnd, hdc);
+        _ = PatBlt(hdc, 0, 0, window_width, window_height, BLACKNESS);
 
         _ = StretchDIBits(
             hdc,
-            0,
-            0,
-            window_width,
-            window_height,
+            @divTrunc(window_width - draw_width, 2),
+            @divTrunc(window_height - draw_height, 2),
+            draw_width,
+            draw_height,
             0,
             0,
             fb.screen_width,
@@ -228,6 +231,7 @@ const PM_REMOVE = 0x0001;
 const BI_RGB = 0;
 const DIB_RGB_COLORS = 0;
 const SRCCOPY = 0x00CC0020;
+const BLACKNESS = 0x00000042;
 
 extern "kernel32" fn GetModuleHandleA(lpModuleName: ?LPCSTR) callconv(.winapi) HINSTANCE;
 extern "kernel32" fn Sleep(dwMilliseconds: DWORD) callconv(.winapi) void;
@@ -248,3 +252,4 @@ extern "user32" fn GetClientRect(hWnd: HWND, lpRect: *RECT) callconv(.winapi) BO
 extern "user32" fn GetDC(hWnd: HWND) callconv(.winapi) HDC;
 extern "user32" fn ReleaseDC(hWnd: HWND, hDC: HDC) callconv(.winapi) i32;
 extern "gdi32" fn StretchDIBits(hdc: HDC, xDest: i32, yDest: i32, DestWidth: i32, DestHeight: i32, xSrc: i32, ySrc: i32, SrcWidth: i32, SrcHeight: i32, lpBits: *const anyopaque, lpbmi: *const BITMAPINFO, iUsage: UINT, rop: DWORD) callconv(.winapi) i32;
+extern "gdi32" fn PatBlt(hdc: HDC, x: i32, y: i32, width: i32, height: i32, rop: DWORD) callconv(.winapi) BOOL;
