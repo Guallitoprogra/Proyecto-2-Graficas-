@@ -6,6 +6,10 @@ Una cabaña de cubos texturizados, con ventanas de vidrio, techo escalonado, chi
 
 ## Video
 
+[Ver la presentación del proyecto en YouTube](https://youtu.be/JT8QKsqJnRE)
+
+### Recorrido del diorama
+
 [Ver o descargar el video del diorama — MP4, 32 segundos](https://github.com/Guallitoprogra/Proyecto-2-Graficas-/raw/refs/heads/main/media/diorama.mp4)
 
 El recorrido muestra rotación, zoom, cambios de altura y una comparación entre uno y ocho hilos. Se generó con el mismo renderizador del programa; los tiempos mostrados corresponden a cada cuadro exportado. El video no tiene audio.
